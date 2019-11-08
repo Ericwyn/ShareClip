@@ -36,6 +36,7 @@ func main() {
 	}
 
 	go clipListen(conn)
+	go sendHeartbeat(conn)
 
 	var sockeMsgJson SocketMsg
 	// 读取信息
@@ -61,7 +62,7 @@ func clipListen(conn *websocket.Conn) {
 	var err error
 	for {
 		clipTemp, err = clipboard.ReadAll()
-		if err == nil && clipTemp != localClipTemp {
+		if err == nil && clipTemp != "" &&  clipTemp != localClipTemp {
 				localClipTemp = clipTemp
 				log("更新 localClipTemp 为 : " + clipTemp)
 				//conn.WriteMessage(websocket.TextMessage, []byte(time.Now().Format("2006-01-02 15:04:05")))
@@ -70,6 +71,14 @@ func clipListen(conn *websocket.Conn) {
 		}
 
 		time.Sleep(time.Millisecond * 1200)
+	}
+}
+
+func sendHeartbeat(conn *websocket.Conn) {
+	for {
+		time.Sleep(time.Minute * 5)
+		_ = conn.WriteMessage(websocket.TextMessage, []byte(""))
+		log("发送一个心跳包")
 	}
 }
 
