@@ -8,7 +8,7 @@
     - 使用 `./ShareClipClient -addr IP:PORT` 连接 ShareClipServer
   3. 之后所有连接 ShareClipServer 的设备都会同步更新剪贴板
   4. 支持 windows/linux/mac os
-  
+  5. ShareClip 只会共享你的文字剪贴, 无法共享文件/图片/视频的剪贴
 
 ---
 
@@ -25,4 +25,4 @@ share your clipboard between windows/linux/mac
     - like `./ShareClipClient -addr 192.168.199.1:7878`
  3. any connect's devices will update the clipboard together
  4. support windows/linux/mac os
-
+ 5. ShareClip Only share your text clipboard, not include files/pictures/videos...
