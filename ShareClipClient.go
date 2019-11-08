@@ -58,15 +58,17 @@ func main() {
 // 监听剪贴板
 func clipListen(conn *websocket.Conn) {
 	var clipTemp string
+	var err error
 	for {
-		clipTemp, _ = clipboard.ReadAll()
-		if clipTemp != localClipTemp {
-			localClipTemp = clipTemp
-			log("更新 localClipTemp 为 : " + clipTemp)
-			//conn.WriteMessage(websocket.TextMessage, []byte(time.Now().Format("2006-01-02 15:04:05")))
-			_ = conn.WriteMessage(websocket.TextMessage, []byte(clipTemp))
-			log("写入 Websocket 里")
+		clipTemp, err = clipboard.ReadAll()
+		if err == nil && clipTemp != localClipTemp {
+				localClipTemp = clipTemp
+				log("更新 localClipTemp 为 : " + clipTemp)
+				//conn.WriteMessage(websocket.TextMessage, []byte(time.Now().Format("2006-01-02 15:04:05")))
+				_ = conn.WriteMessage(websocket.TextMessage, []byte(clipTemp))
+				log("写入 Websocket 里")
 		}
+
 		time.Sleep(time.Millisecond * 1200)
 	}
 }
