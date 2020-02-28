@@ -36,11 +36,13 @@ var manager = ClientManager{
 }
 
 var port = flag.String("port", "7878", "the listen port about ShareClipServer")
+var linkKeyServer = flag.String("key", "ShareClip", "the link key about all client")
 
 func main() {
 	flag.Parse()
 	fmt.Println("启动一个 ShareClipServer...")
-	fmt.Println("当前监听端口为: " + *port)
+	fmt.Println("当前监听端口为:", *port)
+	fmt.Println("当前连接密码为:", *linkKeyServer)
 	go manager.start()
 	http.HandleFunc("/ws", wsPage)
 	err := http.ListenAndServe(":"+*port, nil)
@@ -54,14 +56,14 @@ func (manager *ClientManager) start() {
 		select {
 		case conn := <-manager.register:
 			manager.clients[conn] = true
-			jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected."})
-			manager.send(jsonMessage, conn)
+			//jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected."})
+			//manager.send(jsonMessage, conn)
 		case conn := <-manager.unregister:
 			if _, ok := manager.clients[conn]; ok {
 				close(conn.send)
 				delete(manager.clients, conn)
-				jsonMessage, _ := json.Marshal(&Message{Content: "/A socket has disconnected."})
-				manager.send(jsonMessage, conn)
+				//jsonMessage, _ := json.Marshal(&Message{Content: "/A socket has disconnected."})
+				//manager.send(jsonMessage, conn)
 			}
 		case message := <-manager.broadcast:
 			for conn := range manager.clients {
