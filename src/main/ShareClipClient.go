@@ -17,7 +17,7 @@ var linkKeyClient = flag.String("key", "ShareClip", "the link key about ShareCli
 var continueLink = flag.Bool("continue", false, "Constantly try to reconnect in disconnected, otherwise it will only try a limited times")
 var clientVersion = flag.Bool("v", false, "show the version")
 
-const ClientVerString string = "ShareClip Client " + VersionNum
+const ClientVerString string = "ShareClip Client  V1.0.1"
 
 var localClipTemp = ""
 

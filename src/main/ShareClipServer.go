@@ -39,12 +39,12 @@ var port = flag.String("port", "7878", "the listen port about ShareClipServer")
 var linkKeyServer = flag.String("key", "ShareClip", "the link key about all client")
 var serverVersion = flag.Bool("v", false, "show the version")
 
-const serverVerString string = "ShareClip Server " + VersionNum
+const serverVerString string = "ShareClip Server V1.0.1"
 
 func main() {
 	flag.Parse()
 
-	if *clientVersion {
+	if *serverVersion {
 		fmt.Println(serverVerString)
 		return
 	}
