@@ -15,6 +15,9 @@ var addr = flag.String("addr", "localhost:7878", "http service address")
 var debug = flag.Bool("debug", false, "print debug log")
 var linkKeyClient = flag.String("key", "ShareClip", "the link key about ShareClip Server")
 var continueLink = flag.Bool("continue", false, "Constantly try to reconnect in disconnected, otherwise it will only try a limited times")
+var clientVersion = flag.Bool("v", false, "show the version")
+
+const ClientVerString string = "ShareClip Client " + VersionNum
 
 var localClipTemp = ""
 
@@ -25,6 +28,12 @@ type SocketMsg struct {
 
 func main() {
 	flag.Parse()
+
+	if *clientVersion {
+		fmt.Println(ClientVerString)
+		return
+	}
+
 	// 启动一个 Web Socket
 	fmt.Println("连接:", *addr)
 	fmt.Println("连接密码为:", *linkKeyClient)

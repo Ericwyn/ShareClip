@@ -37,9 +37,18 @@ var manager = ClientManager{
 
 var port = flag.String("port", "7878", "the listen port about ShareClipServer")
 var linkKeyServer = flag.String("key", "ShareClip", "the link key about all client")
+var serverVersion = flag.Bool("v", false, "show the version")
+
+const serverVerString string = "ShareClip Server " + VersionNum
 
 func main() {
 	flag.Parse()
+
+	if *clientVersion {
+		fmt.Println(serverVerString)
+		return
+	}
+
 	fmt.Println("启动一个 ShareClipServer...")
 	fmt.Println("当前监听端口为:", *port)
 	fmt.Println("当前连接密码为:", *linkKeyServer)
