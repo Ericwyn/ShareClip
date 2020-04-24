@@ -2,8 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"flag"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/satori/go.uuid"
 	"net/http"
@@ -20,12 +18,7 @@ type Client struct {
 	id     string
 	socket *websocket.Conn
 	send   chan []byte
-}
-
-type Message struct {
-	Sender    string `json:"sender,omitempty"`
-	Recipient string `json:"recipient,omitempty"`
-	Content   string `json:"content,omitempty"`
+	pass   bool // 是否经过密码认证
 }
 
 var manager = ClientManager{
@@ -35,28 +28,17 @@ var manager = ClientManager{
 	clients:    make(map[*Client]bool),
 }
 
-var port = flag.String("port", "7878", "the listen port about ShareClipServer")
-var linkKeyServer = flag.String("key", "ShareClip", "the link key about all client")
-var serverVersion = flag.Bool("v", false, "show the version")
+func runServer() {
+	//flag.Parse()
 
-const serverVerString string = "ShareClip Server V1.0.1"
-
-func main() {
-	flag.Parse()
-
-	if *serverVersion {
-		fmt.Println(serverVerString)
-		return
-	}
-
-	fmt.Println("启动一个 ShareClipServer...")
-	fmt.Println("当前监听端口为:", *port)
-	fmt.Println("当前连接密码为:", *linkKeyServer)
+	debugLog("启动一个 ShareClipServer...")
+	debugLog("当前监听端口为:", *port)
+	debugLog("当前连接密码为:", *linkKey)
 	go manager.start()
 	http.HandleFunc("/ws", wsPage)
 	err := http.ListenAndServe(":"+*port, nil)
 	if err != nil {
-		fmt.Println(err.Error())
+		debugLog(err.Error())
 	}
 }
 
@@ -76,25 +58,30 @@ func (manager *ClientManager) start() {
 			}
 		case message := <-manager.broadcast:
 			for conn := range manager.clients {
-				select {
-				case conn.send <- message:
-				default:
-					close(conn.send)
-					delete(manager.clients, conn)
+				// 只给通过认证的 conn 发送消息
+				if conn.pass {
+					select {
+					case conn.send <- message:
+					default:
+						close(conn.send)
+						delete(manager.clients, conn)
+					}
 				}
 			}
 		}
 	}
 }
 
-func (manager *ClientManager) send(message []byte, ignore *Client) {
-	for conn := range manager.clients {
-		if conn != ignore {
-			conn.send <- message
-		}
-	}
-}
+//// server 群发给 server
+//func (manager *ClientManager) send(message []byte, ignore *Client) {
+//	for conn := range manager.clients {
+//		if conn != ignore {
+//			conn.send <- message
+//		}
+//	}
+//}
 
+// 不断的从 socket 连接里面读取消息
 func (c *Client) read() {
 	defer func() {
 		manager.unregister <- c
@@ -108,8 +95,28 @@ func (c *Client) read() {
 			c.socket.Close()
 			break
 		}
-		jsonMessage, _ := json.Marshal(&Message{Sender: c.id, Content: string(message)})
-		manager.broadcast <- jsonMessage
+		//debugLog("socket 收到" + string(message))
+		var msg SocketMsg
+		err = json.Unmarshal(message, &msg)
+		if err != nil {
+			debugLog("json 解析 socket 消息失败", err)
+			debugLog(string(message))
+		} else {
+			if msg.Key != *linkKey {
+				debugLog("连接密码错误, sender:", msg.Sender, ", key:", msg.Key)
+			} else {
+				// 只将通过认证的消息发送到 broadcast channel 里面
+				if msg.Content == "link_start" {
+					debugLog("认证" + c.id)
+					// 如果是认证的话, 将这个 c.pass 设为 true
+					c.pass = true
+				} else {
+					msg.Sender = c.id + ":" + msg.Sender
+					jsonMessage, _ := json.Marshal(msg)
+					manager.broadcast <- jsonMessage
+				}
+			}
+		}
 	}
 }
 
@@ -117,7 +124,9 @@ func (c *Client) write() {
 	defer func() {
 		c.socket.Close()
 	}()
-
+	// for 循环
+	// select c.send 看看有什么需要发送的
+	// 如果有需要发送的话就写到这个 socket 里面
 	for {
 		select {
 		case message, ok := <-c.send:
@@ -137,8 +146,13 @@ func wsPage(res http.ResponseWriter, req *http.Request) {
 		http.NotFound(res, req)
 		return
 	}
-	uid, _ := uuid.NewV1()
-	client := &Client{id: uid.String(), socket: conn, send: make(chan []byte)}
+	uid := uuid.NewV1()
+	client := &Client{
+		id:     uid.String(),
+		socket: conn,
+		send:   make(chan []byte),
+		pass:   false,
+	}
 
 	manager.register <- client
 

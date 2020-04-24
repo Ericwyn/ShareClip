@@ -1,28 +1,42 @@
 # ShareClip
-在多台设备/多个系统上面共享剪贴板
+ShareClip 在多台设备/多个系统上面共享剪贴板
+
+已在 windows10 和 ubuntu18.04 上测试通过
 
 ## 使用说明
-  1. 首先你需要运行一个 ShareClipServer 作为一个 websocket 服务器
-    - 使用 `./ShareClipServer -port 7878` 就可以启动了，默认监听的端口是7878
-  2. 在你想要贡献剪贴板的设备上面运行 ShareClipClient
-    - 使用 `./ShareClipClient -addr IP:PORT` 连接 ShareClipServer
-  3. 之后所有连接 ShareClipServer 的设备都会同步更新剪贴板
-  4. 支持 windows/linux/mac os
-  5. ShareClip 只会共享你的文字剪贴, 无法共享文件/图片/视频的剪贴
+ShareClip 通过一个服务端, 使得多个客户端可以进行剪贴板通信
+### 服务端
+使用以下命令可以启动一个服务端
+```shell script
+./ShareClip -server
+```
+server 支持的参数如下
 
----
+ - `port` 监听的端口, 默认是 7878
 
-# ShareClip 
-share your clipboard between windows/linux/mac
+### 客户端
+使用以下命令可以启动一个服务端
+```shell script
+./ShareClip -client
+```
+server 支持的参数如下
 
-## Instruction
- 1. Start a ShareClipServer on your pc
-    - run the ShareClipServer
-    - use `./ShareClipServer -port 7878` to set the listen port of ShareClipServer, the default port listen in 7878
- 2. Start a ShareClipClient in any pc that your want to share clipboard with other devices
-    - all the ShareClipClient should connect with one ShareClipServer
-    - use `./ShareClipClient -addr IP:PORT` to connect the ShareClipServer
-    - like `./ShareClipClient -addr 192.168.199.1:7878`
- 3. any connect's devices will update the clipboard together
- 4. support windows/linux/mac os
- 5. ShareClip Only share your text clipboard, not include files/pictures/videos...
+ - `address` 监听的端口, 默认是 localhost:7878
+ - `continue`  与服务断开连接之后是否持续重连, 默认只重连有限次数
+ - `sender` 客户端标记名
+ 
+### 共同支持的参数
+ - `key`
+ 
+    连接密码
+ - `debug`
+    
+    开启 debug 日志
+ - `v`
+ 
+    查看版本号
+
+
+## 注意事项
+
+  1. ShareClip 只会共享你的文字剪贴, 无法共享文件/图片/视频的剪贴
