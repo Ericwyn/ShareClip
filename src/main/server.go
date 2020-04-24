@@ -106,10 +106,12 @@ func (c *Client) read() {
 				debugLog("连接密码错误, sender:", msg.Sender, ", key:", msg.Key)
 			} else {
 				// 只将通过认证的消息发送到 broadcast channel 里面
-				if msg.Content == "link_start" {
+				if msg.Content == MsgContentLinkStart {
 					debugLog("认证" + c.id)
 					// 如果是认证的话, 将这个 c.pass 设为 true
 					c.pass = true
+				} else if msg.Content == MsgContentHeartBeat {
+					// 心跳包认证
 				} else {
 					msg.Sender = c.id + ":" + msg.Sender
 					jsonMessage, _ := json.Marshal(msg)

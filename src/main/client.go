@@ -12,6 +12,9 @@ import (
 
 var localClipTemp = ""
 
+const MsgContentHeartBeat string = "ShareClip_Msg_HeartBeat"
+const MsgContentLinkStart string = "ShareClip_Msg_LinkStart"
+
 func runClient() {
 	//flag.Parse()
 	// 给这个发送端一个id, 默认使用 unix time
@@ -36,7 +39,7 @@ func runClient() {
 	// 发送一个消息进行认证
 	msg := SocketMsg{
 		Sender:  *senderName,
-		Content: "link_start",
+		Content: MsgContentLinkStart,
 		Key:     *linkKey, // 连接密码
 	}
 	jsonByte, _ := json.Marshal(msg)
@@ -45,7 +48,7 @@ func runClient() {
 	go clipListen(conn)
 	go sendHeartbeat(conn)
 
-	var sockeMsgJson SocketMsg
+	var socketMsgJson SocketMsg
 	errorCount := 0
 	maxErrorCount := 120
 	errorWaitTime := 30
@@ -66,12 +69,12 @@ func runClient() {
 			debugLog(strconv.Itoa(errorWaitTime) + "s 后尝试重新连接")
 			time.Sleep(time.Second * 30)
 		}
-		_ = json.Unmarshal(message, &sockeMsgJson)
-		if sockeMsgJson.Content != localClipTemp {
-			debugLog("接收到 clip 更新 : " + sockeMsgJson.Content)
+		_ = json.Unmarshal(message, &socketMsgJson)
+		if socketMsgJson.Content != localClipTemp {
+			debugLog("接收到 clip 更新 : " + socketMsgJson.Content)
 			debugLog("更新本地剪贴板")
-			localClipTemp = sockeMsgJson.Content
-			_ = clipboard.WriteAll(sockeMsgJson.Content)
+			localClipTemp = socketMsgJson.Content
+			_ = clipboard.WriteAll(socketMsgJson.Content)
 		}
 	}
 }
@@ -104,7 +107,13 @@ func clipListen(conn *websocket.Conn) {
 func sendHeartbeat(conn *websocket.Conn) {
 	for {
 		time.Sleep(time.Minute * 5)
-		_ = conn.WriteMessage(websocket.TextMessage, []byte(""))
+		msg := SocketMsg{
+			Sender:  *senderName,
+			Content: MsgContentHeartBeat,
+			Key:     *linkKey, // 连接密码
+		}
+		jsonByte, _ := json.Marshal(msg)
+		_ = conn.WriteMessage(websocket.TextMessage, jsonByte)
 		debugLog("发送一个心跳包")
 	}
 }
