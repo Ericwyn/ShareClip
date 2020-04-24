@@ -22,7 +22,7 @@ var linkKey = flag.String("key", "share", "连接密码")
 
 var version = flag.Bool("v", false, "版本号")
 
-const versionCode = "v2.0"
+const versionCode = "v2.1"
 
 func main() {
 	flag.Parse()
